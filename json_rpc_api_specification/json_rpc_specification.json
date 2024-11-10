@@ -1,0 +1,266 @@
+{
+  "openrpc": "1.0.0-rc1",
+  "info": {
+    "version": "1.0.0",
+    "title": "SecureAccessAPI",
+    "description": "API for the secure datastorage. Access to the data is provided according to the access levels",
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "name": "Server",
+      "url": "http://api.securestorage.com/{version}",
+      "variables": {
+        "version": {
+          "default": "v1",
+          "enum": ["v1", "v2", "v3", "v4", "v5"]
+        }
+      }
+    }
+  ],
+  "methods": [
+    {
+      "name": "manageSecretData",
+      "summary": "Actions are handled according to the access level of user",
+      "tags": [
+        {
+          "name": "access"
+        }
+      ],
+      "params": [
+        {
+          "name": "action",
+          "description": "Type of the action",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "enum": ["add", "get", "delete"]
+          }
+        },
+        {
+          "name": "dataID",
+          "description": "Identifier of tha data",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        {
+          "name": "userData",
+          "description": "Data to be appended",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "accessLevel",
+          "description": "Access level of the user",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "enum": ["user", "admin", "superAdmin"]
+          }
+        },
+        {
+          "name": "language",
+          "description": "Language of messages",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "default": "EN",
+            "enum": ["EN", "RU", "DE", "FR", "ES"]
+          }
+        }
+      ],
+      "result": {
+        "name": "actionAllowance",
+        "description": "Result of allowance check",
+        "schema": {
+          "status": {"$ref": "#/components/schemas/status"},
+          "data_id": {"$ref": "#/components/schemas/data_id"},
+          "data": { "$ref": "#/components/schemas/data"}
+        }
+      },
+      "errors": [
+        {
+          "code": -32600,
+          "message": "Invalid Request"
+        },
+        {
+          "code": -32601,
+          "message": "Method not found"
+        },
+        {
+          "code": -32602,
+          "message": "Invalid params",
+          "data": {
+            "invalidParameter": "dataId"
+          }
+        },
+        {
+          "code": -32603,
+          "message": "Internal error"
+        },
+        {
+          "code": -32000,
+          "message": "There is no row with such dataID"
+        },
+        {
+          "code": -32001,
+          "message": "Action is not allowed for this access level"
+        }
+      ],
+      "examples": [
+        {
+          "name": "addExample",
+          "description": "Example of add action",
+          "params": [
+            {
+              "name": "action",
+              "value": "add"
+            },
+            {
+              "name": "userData",
+              "value": "https://en.wikipedia.org/wiki/Interstellar_(film)"
+            },
+            {
+              "name": "accessLevel",
+              "value": "admin"
+            }
+          ],
+          "result": {
+            "name": "addResultExample",
+            "value": {
+              "status": "success",
+              "data_id": 2592566
+            }
+          }
+        },
+        {
+          "name": "getExample",
+          "description": "Example of get action",
+          "params": [
+            {
+              "name": "action",
+              "value": "get"
+            },
+            {
+              "name": "dataID",
+              "value": 5263894
+            },
+            {
+              "name": "accessLevel",
+              "value": "user"
+            }
+          ],
+          "result": {
+            "name": "getResultExample",
+            "value": {
+              "status": "success",
+              "data_id": 2592566,
+              "data": "https://en.wikipedia.org/wiki/The_Prestige_(film)"
+            }
+          }
+        },
+        {
+           "name": "deleteExample",
+          "description": "Example of delete action",
+          "params": [
+            {
+              "name": "action",
+              "value": "delete"
+            },
+            {
+              "name": "dataID",
+              "value": 5263894
+            },
+            {
+              "name": "accessLevel",
+              "value": "superAdmin"
+            }
+          ],
+          "result": {
+            "name": "deleteResultExample",
+            "value": {
+              "status": "success"
+            }
+          }
+        },
+        {
+           "name": "deleteFailureExample",
+          "description": "Example of action failure due to unsufficient access level",
+          "params": [
+            {
+              "name": "action",
+              "value": "delete"
+            },
+            {
+              "name": "dataID",
+              "value": 5263894
+            },
+            {
+              "name": "accessLevel",
+              "value": "user"
+            }
+          ],
+          "result": {
+            "name": "deleteFailureResultExample",
+            "value": {
+              "status": "failure",
+              "code": -32001,
+              "message": "Action is not allowed for this access level"
+            }
+          }
+        },
+        {
+           "name": "deleteFailureGermanExample",
+          "description": "Example of action failure due to unsufficient access level in german",
+          "params": [
+            {
+              "name": "action",
+              "value": "delete"
+            },
+            {
+              "name": "dataID",
+              "value": 5263894
+            },
+            {
+              "name": "accessLevel",
+              "value": "user"
+            },
+            {
+              "name": "language",
+              "value": "DE"
+            }
+          ],
+          "result": {
+            "name": "deleteFailureResultGermanExample",
+            "value": {
+              "status": "failure",
+              "code": -32001,
+              "message": "Aktion ist für diese Zugriffsebene verboten"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "status": {
+        "type": "string",
+        "enum": ["success", "failure"]
+      }
+    },
+    "dataId": {
+      "type": "integer"
+    },
+    "data":{
+      "type": "string"
+    }
+  }
+}
